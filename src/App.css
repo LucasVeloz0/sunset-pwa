@@ -3,6 +3,7 @@
   min-height: 100vh;
   background: linear-gradient(to bottom, #ff9966, #ff5e62);
   color: white;
+  padding: 20px;
 }
 
 .compass {
@@ -25,4 +26,13 @@
 
 .error {
   color: #ffeb3b;
+  background: rgba(0,0,0,0.3);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.sunset-info {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
 }
