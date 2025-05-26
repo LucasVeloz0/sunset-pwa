@@ -1,0 +1,16 @@
+{
+    "name": "Sunset PWA",
+    "short_name": "Sunset",
+    "start_url": "/sunset-pwa/",
+    "scope": "/sunset-pwa/",
+    "display": "standalone",
+    "theme_color": "#ff9966",
+    "background_color": "#ffffff",
+    "icons": [
+      {
+        "src": "/sunset-pwa/pwa-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ]
+  }

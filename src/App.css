@@ -6,24 +6,6 @@
   padding: 20px;
 }
 
-.compass {
-  width: 150px;
-  height: 150px;
-  border: 2px solid white;
-  border-radius: 50%;
-  margin: 20px auto;
-  position: relative;
-}
-
-.arrow {
-  position: absolute;
-  width: 100%;
-  text-align: center;
-  font-size: 24px;
-  top: -10px;
-  transition: transform 0.5s ease;
-}
-
 .error {
   color: #ffeb3b;
   background: rgba(0,0,0,0.3);
@@ -36,3 +18,84 @@
   gap: 30px;
   justify-content: center;
 }
+
+.compass-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.compass {
+  width: 250px;
+  height: 250px;
+  position: relative;
+  margin: 20px auto;
+}
+
+.compass-circle {
+  width: 100%;
+  height: 100%;
+  border: 3px solid white;
+  border-radius: 50%;
+  position: relative;
+}
+
+.arrow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform-origin: 50% 100%;
+  z-index: 2;
+  margin-left: -10px;
+  transition: transform 0.5s ease;
+}
+
+.arrow-head {
+  font-size: 20px;
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.aligned .arrow-head {
+  color: #00ff66; /* verde fluorescente */
+}
+
+
+.sun-icon {
+  font-size: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.info {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.help {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* Adicione estas media queries para melhor responsividade */
+@media (max-width: 480px) {
+  .compass {
+    width: 200px;
+    height: 200px;
+  }
+
+  .sun-icon {
+    font-size: 30px;
+  }
+
+  .arrow-head {
+    font-size: 16px;
+  }
+}
+

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://LucasVeloz0.github.io/sunset-pwa",
+  "homepage": "https://lucasveloz0.github.io/sunset-pwa/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -18,6 +18,7 @@
     "suncalc": "^1.9.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
     "@vitejs/plugin-react-swc": "^3.10.0",
     "gh-pages": "^6.3.0",
     "vite": "^6.3.5",
