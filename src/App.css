@@ -1,0 +1,28 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #ff9966, #ff5e62);
+  color: white;
+}
+
+.compass {
+  width: 150px;
+  height: 150px;
+  border: 2px solid white;
+  border-radius: 50%;
+  margin: 20px auto;
+  position: relative;
+}
+
+.arrow {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  top: -10px;
+  transition: transform 0.5s ease;
+}
+
+.error {
+  color: #ffeb3b;
+}
