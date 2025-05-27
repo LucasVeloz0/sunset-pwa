@@ -35,7 +35,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/node_modules/**/*', '**/sw.js', '**/workbox-*.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.sunrise-sunset\.org\/.*/i,
