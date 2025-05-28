@@ -6,14 +6,17 @@
   color: white;
   text-align: center;
   font-family: 'Segoe UI', system-ui;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Sistema de Erros */
 .error-banner {
   background: #d32f2f;
   padding: 15px;
-  margin: 20px auto;
-  max-width: 400px;
+  margin: 20px 0;
+  max-width: 90%;
   border-radius: 8px;
   animation: shake 0.5s;
 }
@@ -26,8 +29,8 @@
 
 /* Bússola Digital */
 .compass-wrapper {
-  position: relative;
-  margin: 40px auto;
+  margin: 2rem 0;
+  width: 100%;
   max-width: 600px;
 }
 
@@ -49,7 +52,7 @@
   width: 4px;
   height: 140px;
   background: #ff9800;
-  transition: transform 0.1s linear;
+  transition: transform 0.2s ease-out;
 }
 
 .sun-indicator {
@@ -57,7 +60,13 @@
   top: 0;
   left: -18px;
   font-size: 40px;
-  filter: drop-shadow(0 0 15px rgba(255, 152, 0, 0.5));
+  filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.7));
+  animation: sun-pulse 2s infinite;
+}
+
+@keyframes sun-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .alignment-marker {
@@ -77,9 +86,36 @@
   padding: 20px;
   border-radius: 12px;
   margin-top: 30px;
+  width: 90%;
+  max-width: 500px;
   backdrop-filter: blur(5px);
 }
 
+/* Botão de Câmera */
+.camera-button {
+  padding: 15px 30px;
+  margin: 20px 0;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+}
+
+.camera-button:hover {
+  background: #1976D2;
+  transform: translateY(-2px);
+}
+
+.camera-button.active {
+  background: #4CAF50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+/* Feedback de Alinhamento */
 .alignment-feedback {
   padding: 12px;
   margin: 15px 0;
@@ -109,33 +145,122 @@
   .direction-arrow {
     height: 110px;
   }
+
+  .camera-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+  }
 }
 
-/* Modo AR */
-.ar-video {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw !important;
-  height: 100vh !important;
+/* Novo estilo para mensagens do Android */
+.android-fallback {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 20px 0;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Interface da Câmera */
+.camera-interface {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.camera-preview {
+  width: 100%;
+  height: 70vh;
+  background: #000;
+  transform: scaleX(-1); /* Espelha a imagem */
+  border-radius: 15px;
   object-fit: cover;
-  z-index: 10000; /* Garante que fique atrás da interface */
-  transform: scaleX(-1); /* Espelho natural */
-  background: black;
 }
 
-.ar-ui {
+.photo-canvas {
+  display: none;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  z-index: 2;
+}
+
+.capture-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.capture-button:hover {
+  transform: scale(1.1);
+  background: rgba(255, 0, 0, 0.3);
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Preview da Foto */
+.photo-preview {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 9999;
-  pointer-events: none;
   width: 100%;
   height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-/* Adicione no botão AR */
-.ar-button {
-  pointer-events: auto;
-  z-index: 10000;
+.photo-preview img {
+  max-width: 90%;
+  max-height: 80vh;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(255, 165, 0, 0.5);
 }
+
+.download-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #2196F3;
+  color: white;
+  border-radius: 25px;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.download-button:hover {
+  transform: translateY(-2px);
+}
+

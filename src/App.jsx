@@ -8,8 +8,7 @@ const App = () => {
   const [sunAzimuth, setSunAzimuth] = useState(0);
   const [deviceHeading, setDeviceHeading] = useState(0);
   const [error, setError] = useState(null);
-  const [arMode, setArMode] = useState(false);
-  const videoRef = useRef(null);
+  const [cameraActive, setCameraActive] = useState(false);
 
   // 1. Obter geolocalização
   useEffect(() => {
@@ -48,7 +47,6 @@ const App = () => {
     const handleOrientation = (event) => {
       if (event.alpha !== null) {
         let alpha = event.alpha;
-        // Correção para iOS
         if (typeof event.webkitCompassHeading !== 'undefined') {
           alpha = event.webkitCompassHeading;
         }
@@ -63,42 +61,42 @@ const App = () => {
     };
   }, []);
 
-  // 4. Ativar modo AR
-  const activateAR = async () => {
-    try {
-      const constraints = { video: true }; // Câmera padrão do dispositivo
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.setAttribute('playsinline', 'true');
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play().catch(err => {
-            setError('Falha ao iniciar a câmera: ' + err.message);
-          });
-        };
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.play().catch(err => {
-              setError('Falha ao iniciar a câmera: ' + err.message);
-            });
-          }
-        }, 500);
-      }
-      setArMode(true);
-    } catch (err) {
-      console.error('Erro AR:', err);
-      if (err.name === 'NotFoundError') {
-        setError('Nenhuma câmera foi encontrada neste dispositivo.');
-      } else if (err.name === 'NotAllowedError') {
-        setError('Permissão para acessar a câmera negada.');
-      } else {
-        setError(`Código: ${err.name} - ${err.message}`);
-      }
-      setArMode(false);
+  // 4. Abrir aplicativo de câmera
+  const handleOpenCamera = () => {
+    // Tenta acessar a câmera diretamente pelo navegador
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          // Implementar preview da câmera
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.play();
+          document.body.appendChild(video);
+          
+          // Lógica para tirar foto
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          // Botão de captura
+          const captureBtn = document.createElement('button');
+          captureBtn.textContent = 'Capturar Foto';
+          captureBtn.onclick = () => {
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const photo = canvas.toDataURL('image/png');
+            // Faça algo com a foto
+          };
+          
+          document.body.appendChild(captureBtn);
+        })
+        .catch(err => {
+          alert(`Erro: ${err.message}`);
+        });
+    } else {
+      alert('Seu navegador não suporta acesso à câmera. Abra o app de câmera manualmente.');
     }
   };
+  
 
   // 5. Calcular ângulo relativo
   const calculateRelativeAngle = () => {
@@ -110,39 +108,18 @@ const App = () => {
 
   return (
     <div className="app-container">
-      {arMode && (
-        <video 
-          ref={videoRef}
-          className="ar-video"
-          autoPlay
-          playsInline
-        />
-      )}
-
-      <h1>🌅 Caçador de Pôr do Sol</h1>
+      <h1>🌅 Guia do Pôr do Sol</h1>
       
       <button 
-        className="ar-button"
-        onClick={() => {
-          if (arMode) {
-            setArMode(false);
-            if (videoRef.current && videoRef.current.srcObject) {
-              // Para a câmera ao sair do modo AR
-              const tracks = videoRef.current.srcObject.getTracks();
-              tracks.forEach(track => track.stop());
-              videoRef.current.srcObject = null;
-            }
-          } else {
-            activateAR();
-          }
-        }}
+        className={`camera-button ${cameraActive ? 'active' : ''}`}
+        onClick={handleOpenCamera}
       >
-        {arMode ? '📷 Sair do AR' : '🌍 Modo AR'}
+        📸 Abrir Câmera
       </button>
 
       {error && <div className="error-banner">{error}</div>}
 
-      <div className={`compass-wrapper ${arMode ? 'ar-active' : ''}`}>
+      <div className="compass-wrapper">
         <div className="compass">
           <div 
             className="direction-arrow"
