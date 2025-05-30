@@ -91,141 +91,81 @@
   backdrop-filter: blur(5px);
 }
 
-/* Botão de Câmera */
-.camera-button {
+/* Botão Principal da Câmera */
+.main-camera-btn {
   padding: 15px 30px;
-  margin: 20px 0;
-  background: #2196F3;
+  font-size: 1.2em;
+  background: #2196f3;
   color: white;
   border: none;
-  border-radius: 30px;
-  font-size: 1.1em;
+  border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
+  margin: 20px 0;
 }
 
-.camera-button:hover {
-  background: #1976D2;
+.main-camera-btn:hover {
+  background: #1976d2;
   transform: translateY(-2px);
 }
 
-.camera-button.active {
-  background: #4CAF50;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-}
-
-/* Feedback de Alinhamento */
-.alignment-feedback {
-  padding: 12px;
-  margin: 15px 0;
-  border-radius: 8px;
-  background: rgba(255, 0, 0, 0.3);
-  transition: all 0.3s ease;
-}
-
-.alignment-feedback.aligned {
-  background: rgba(76, 175, 80, 0.3);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-/* Responsividade */
-@media (max-width: 480px) {
-  .compass {
-    width: 220px;
-    height: 220px;
-  }
-  
-  .direction-arrow {
-    height: 110px;
-  }
-
-  .camera-button {
-    width: 100%;
-    padding: 12px;
-    font-size: 1em;
-  }
-}
-
-/* Novo estilo para mensagens do Android */
-.android-fallback {
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 15px;
-  border-radius: 10px;
-  margin: 20px 0;
-  animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-/* Interface da Câmera */
-.camera-interface {
+/* Container da Câmera */
+.camera-container {
   position: relative;
   width: 100%;
   max-width: 600px;
   margin: 20px auto;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
 }
 
 .camera-preview {
   width: 100%;
-  height: 70vh;
+  height: 100%;
   background: #000;
-  transform: scaleX(-1); /* Espelha a imagem */
-  border-radius: 15px;
+  transform: scaleX(-1); /* Flip horizontal para selfies */
   object-fit: cover;
+  display: block; /* Garante visibilidade */
 }
 
-.photo-canvas {
-  display: none;
-}
-
+/* Controles da Câmera */
 .camera-controls {
   position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 20px;
+  gap: 15px;
   z-index: 2;
 }
 
-.capture-button {
-  width: 60px;
-  height: 60px;
+.camera-btn {
+  width: 50px;
+  height: 50px;
+  border: none;
   border-radius: 50%;
-  border: 3px solid white;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
   backdrop-filter: blur(5px);
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.capture-button:hover {
-  transform: scale(1.1);
-  background: rgba(255, 0, 0, 0.3);
-}
-
-.close-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
   color: white;
-  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.camera-btn:hover {
+  transform: scale(1.1);
+  background: rgba(255,255,255,0.2);
+}
+
+.flip-btn {
+  position: absolute;
+  left: -80px;
+}
+
+.close-btn {
+  position: absolute;
+  right: -80px;
 }
 
 /* Preview da Foto */
@@ -264,3 +204,58 @@
   transform: translateY(-2px);
 }
 
+/* Feedback de Alinhamento */
+.alignment-feedback {
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 8px;
+  background: rgba(255, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.alignment-feedback.aligned {
+  background: rgba(76, 175, 80, 0.3);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .compass {
+    width: 220px;
+    height: 220px;
+  }
+  
+  .direction-arrow {
+    height: 110px;
+  }
+
+  .main-camera-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+  }
+
+  .camera-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
+  }
+
+  .flip-btn {
+    left: -60px;
+  }
+
+  .close-btn {
+    right: -60px;
+  }
+  
+  .camera-preview {
+    height: 50vh;
+  }
+}
