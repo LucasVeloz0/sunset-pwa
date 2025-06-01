@@ -10,6 +10,7 @@ export const getSunsetDirection = (lat, lng) => {
   const now = new Date();
   const sunsetTime = SunCalc.getTimes(now, lat, lng).sunset;
   const sunPos = SunCalc.getPosition(sunsetTime, lat, lng);
+    // Converte radianos para graus e normaliza para 0-360
   return ((sunPos.azimuth * 180 / Math.PI) + 180) % 360;
 };
 
@@ -20,4 +21,27 @@ export const getSunsetDirection = (lat, lng) => {
  */
 export const normalizeOrientation = (alpha) => {
   return (360 - alpha) % 360;
+};
+
+/**
+ * Normaliza um ângulo para o intervalo [-180, 180]
+ * Isso permite transições suaves através do ponto 0/360
+ */
+export const normalizeAngle = (angle) => {
+  angle = angle % 360;
+  if (angle > 180) {
+    angle -= 360;
+  }
+  if (angle < -180) {
+    angle += 360;
+  }
+  return angle;
+};
+
+/**
+ * Calcula a diferença angular mais curta entre dois ângulos
+ */
+export const shortestAngleDiff = (target, current) => {
+  const diff = normalizeAngle(target - current);
+  return diff;
 };

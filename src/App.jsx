@@ -72,40 +72,55 @@ const App = () => {
       setSunAzimuth(azimuth);
     }
   }, [position]);
-
-  // 3. Configurar sensor de orientação
+  /**
+   * Efeito para configuração do sensor de orientação.
+   * Adiciona listener para eventos de orientação do dispositivo.
+   */
   useEffect(() => {
     const handleOrientation = (event) => {
       if (event.alpha !== null) {
         let alpha = event.alpha;
+        // Tratamento especial para iOS (webkitCompassHeading)
         if (typeof event.webkitCompassHeading !== 'undefined') {
           alpha = event.webkitCompassHeading;
         }
+
+        // Normaliza e atualiza a direção do dispositivo
         setDeviceHeading(normalizeOrientation(alpha));
       }
     };
 
+    // Verifica suporte ao sensor
     if (window.DeviceOrientationEvent) {
       window.addEventListener('deviceorientation', handleOrientation, true);
     } else {
       setError('Sensor de orientação não suportado neste dispositivo');
     }
     
+    // Limpeza: remove listener ao desmontar
     return () => {
       window.removeEventListener('deviceorientation', handleOrientation);
     };
   }, []);
 
-  // 4. Controle da câmera com useEffect
+    /**
+   * Efeito para controle da câmera.
+   * Gerencia ciclo de vida do stream de vídeo:
+   * - Inicia câmera quando cameraActive é true
+   * - Para stream quando desativado ou ao desmontar
+   * - Alterna entre câmeras quando facingMode muda
+   */
   useEffect(() => {
     let stream = null;
     
     const startCamera = async () => {
       try {
+        // Evita múltiplas inicializações
         if (videoRef.current && videoRef.current.srcObject) {
           return; // Já está ativo
         }
         
+        // Configurações da câmera
         const constraints = {
           video: { 
             facingMode: facingMode,
@@ -114,8 +129,14 @@ const App = () => {
           }
         };
 
+        // Antes de pedir novo stream, pare o anterior se existir
+        if (videoRef.current && videoRef.current.srcObject) {
+          videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+          videoRef.current.srcObject = null;
+        }
+        // Agora peça o novo stream normalmente
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
+        // Configura elemento de vídeo        
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.onloadedmetadata = () => {
@@ -130,10 +151,12 @@ const App = () => {
       }
     };
 
+    // Inicia câmera se estiver ativa    
     if (cameraActive) {
       startCamera();
     }
 
+    // Limpeza: para todos os tracks ao desmontar ou mudar dependências
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -141,36 +164,50 @@ const App = () => {
     };
   }, [cameraActive, facingMode]);
 
+
+  // ======================================================================
+  // FUNÇÕES DE CONTROLE DA CÂMERA
+  // ======================================================================
+
+  /** Alterna entre câmeras frontal e traseira */
   const toggleCamera = () => {
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
   };
 
+  /** Captura uma foto do vídeo atual e gera data URL */  
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
+    // Verifica se o vídeo está pronto    
     if (video && canvas && video.readyState >= 2) {
+      // Configura canvas com dimensões do vídeo      
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       
+      // Aplica flip horizontal apenas para câmera frontal      
       if (facingMode === 'user') {
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
       }
       
+      // Captura frame atual do vídeo      
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Gera URL da imagem e atualiza estado      
       setPhoto(canvas.toDataURL('image/jpeg', 0.9));
     }
   };
 
+  /** Fecha a câmera e libera recursos */  
   const closeCamera = () => {
     if (videoRef.current?.srcObject) {
+      // Para todos os tracks de mídia
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+      videoRef.current.srcObject = null; 
     }
     setCameraActive(false);
-    setPhoto(null);
+    setPhoto(null); // Reseta foto capturada
   };
 
   // Efeito de limpeza global
@@ -182,38 +219,61 @@ const App = () => {
     };
   }, []);
 
-  // 5. Cálculos de direção
+  // ======================================================================
+  // FUNÇÕES DE CÁLCULO E RENDERIZAÇÃO
+  // ======================================================================
+
+  /** 
+   * Calcula ângulo relativo entre direção do sol e dispositivo 
+   * @ returns number Ângulo em graus 0-360
+    */
   const calculateRelativeAngle = () => {
-    return (sunAzimuth - deviceHeading + 360) % 360;
+    let relativeAngle = (sunAzimuth - deviceHeading + 360) % 360;
+  
+  // Suaviza a transição quando passa pelo ponto 0/360
+  if (relativeAngle > 180) {
+    relativeAngle -= 360;
+  }
+  
+  return relativeAngle;
   };
 
-  const isAligned = Math.abs(calculateRelativeAngle()) < 5;
+  /** Verifica se dispositivo está alinhado com o sol (margem de 15 graus) */  
+  const isAligned = Math.abs(calculateRelativeAngle()) < 15;
+
+  // ======================================================================
+  // RENDERIZAÇÃO DA INTERFACE
+  // ======================================================================
 
   return (
     <div className="app-container">
-      <h1>🌅 Amantes do Pôr do Sol</h1>
+      <h1>🌅 Localizando o Pôr do Sol</h1>
 
+      {/* Área da câmera */}
       {cameraActive && (
         <div className="camera-container">
+          {/* Elemento de vídeo para preview da câmera */}
           <video
             ref={videoRef}
-            className="camera-preview"
-            playsInline
-            muted
+            className={`camera-preview${facingMode === 'user' ? ' mirrored' : ''}`}
+            playsInline // Necessário para iOS
+            muted // Não reproduz áudio
           />
-          
+
+          {/* Controles da câmera */}          
           <div className="camera-controls">
-            <button className="camera-btn flip-btn" onClick={toggleCamera}>
-              🔄
+            <button className="camera-btn" onClick={toggleCamera} aria-label="Alternar câmera">
+            🔄
             </button>
-            <button className="camera-btn capture-btn" onClick={capturePhoto}>
-              ⭕
-            </button>
-            <button className="camera-btn close-btn" onClick={closeCamera}>
+              <button className="camera-btn capture-btn" onClick={capturePhoto} aria-label="Capturar foto">
+             ⭕
+             </button>
+             <button className="camera-btn" onClick={closeCamera} aria-label="Fechar câmera">
               ✖
-            </button>
+             </button>
           </div>
 
+          {/* Preview da foto capturada */}
           {photo && (
             <div className="photo-preview">
               <img src={photo} alt="Foto capturada" />
@@ -235,6 +295,7 @@ const App = () => {
         </div>
       )}
 
+      {/* Botão para ativar câmera */}
       {!cameraActive && (
         <button 
           className="main-camera-btn"
@@ -244,32 +305,42 @@ const App = () => {
         </button>
       )}
 
+      {/* Bússola digital e informações */}
       <div className="compass-wrapper">
         <div className="compass">
+          {/* Seta direcional que aponta para o sol */}          
           <div 
             className="direction-arrow"
             style={{ transform: `rotate(${calculateRelativeAngle()}deg)` }}
           >
             <div className="sun-indicator">☀️</div>
           </div>
+          {/* Marcador de alinhamento */}          
           <div className="alignment-marker"></div>
         </div>
 
+        {/* Painel de informações */}
         <div className="info-panel">
+          {/* Horário do pôr do sol */}
           <p>⏱ Horário do pôr do sol: {
             position && 
             new Date(SunCalc.getTimes(new Date(), position.lat, position.lng).sunset)
               .toLocaleTimeString()
           }</p>
+
+          {/* Direção do sol */}          
           <p>🧭 Direção: {sunAzimuth.toFixed(1)}°</p>
+          {/* Feedback de alinhamento */}          
           <div className={`alignment-feedback ${isAligned ? 'aligned' : ''}`}>
             {isAligned ? '⭐ ALINHADO! ⭐' : 'Gire o dispositivo... ➡️'}
           </div>
         </div>
       </div>
 
+      {/* Exibição de erros */}
       {error && <div className="error-banner">{error}</div>}
       
+      {/* Canvas oculto para captura de fotos */}      
       <canvas ref={canvasRef} style={{ display: 'none' }} />
     </div>
   );

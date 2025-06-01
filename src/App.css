@@ -1,6 +1,7 @@
 /* Layout Base */
 .app-container {
-  min-height: 100vh;
+  width: 100%; /* Ocupa toda a largura da viewport */
+  min-height: 100vh; /* Ocupa pelo menos a altura total da viewport */
   padding: 20px;
   background: linear-gradient(160deg, #1a237e, #0d47a1);
   color: white;
@@ -9,9 +10,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden; /* Impede scroll horizontal */
 }
 
-/* Sistema de Erros */
+/**
+ * SISTEMA DE ERROS
+ * Estilos para exibição de mensagens de erro
+ */
 .error-banner {
   background: #d32f2f;
   padding: 15px;
@@ -27,7 +32,10 @@
   75% { transform: translateX(10px); }
 }
 
-/* Bússola Digital */
+/**
+ * BÚSSOLA DIGITAL
+ * Estilos para o componente de bússola
+ */
 .compass-wrapper {
   margin: 2rem 0;
   width: 100%;
@@ -44,6 +52,7 @@
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
 }
 
+/* Seta que indica direção do sol */
 .direction-arrow {
   position: absolute;
   top: -20px;
@@ -52,13 +61,15 @@
   width: 4px;
   height: 140px;
   background: #ff9800;
-  transition: transform 0.2s ease-out;
+    transition: transform 0.5s ease-out; /* Transição suave */
+  will-change: transform; /* Otimização de performance */
 }
 
+/* Ícone do sol na ponta da seta */
 .sun-indicator {
   position: absolute;
-  top: 0;
-  left: -18px;
+  top: -35px;
+  left: -25px;
   font-size: 40px;
   filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.7));
   animation: sun-pulse 2s infinite;
@@ -69,6 +80,7 @@
   50% { transform: scale(1.1); }
 }
 
+/* Marcador de alinhamento (verde) */
 .alignment-marker {
   position: absolute;
   top: 20px;
@@ -78,9 +90,13 @@
   background: #4caf50;
   transform: translateX(-50%);
   box-shadow: 0 0 15px #4caf50;
+  transition: all 0.3s ease-out;
 }
 
-/* Painel de Informações */
+/**
+ * PAINEL DE INFORMAÇÕES
+ * Exibe dados do pôr do sol
+ */
 .info-panel {
   background: rgba(255, 255, 255, 0.05);
   padding: 20px;
@@ -91,7 +107,10 @@
   backdrop-filter: blur(5px);
 }
 
-/* Botão Principal da Câmera */
+/**
+ * BOTÕES PRINCIPAIS
+ * Estilos para botões de ação
+ */
 .main-camera-btn {
   padding: 15px 30px;
   font-size: 1.2em;
@@ -109,7 +128,10 @@
   transform: translateY(-2px);
 }
 
-/* Container da Câmera */
+/**
+ * CONTROLE DA CÂMERA
+ * Estilos para área de preview e controles
+ */
 .camera-container {
   position: relative;
   width: 100%;
@@ -120,29 +142,36 @@
   box-shadow: 0 0 20px rgba(0,0,0,0.3);
 }
 
+/* Elemento de vídeo para preview */
 .camera-preview {
   width: 100%;
   height: 100%;
   background: #000;
-  transform: scaleX(-1); /* Flip horizontal para selfies */
   object-fit: cover;
-  display: block; /* Garante visibilidade */
+  display: block;
 }
 
-/* Controles da Câmera */
+.camera-preview.mirrored {
+  transform: scaleX(-1);
+}
+
+/* CONTROLES DA CÂMERA - NOVO ESTILO */
 .camera-controls {
   position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  justify-content: center;
   gap: 15px;
+  width: 100%;
+  max-width: 300px;
   z-index: 2;
 }
 
 .camera-btn {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: rgba(255,255,255,0.1);
@@ -151,6 +180,9 @@
   transition: all 0.3s ease;
   color: white;
   font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .camera-btn:hover {
@@ -158,17 +190,17 @@
   background: rgba(255,255,255,0.2);
 }
 
-.flip-btn {
-  position: absolute;
-  left: -80px;
+/* Botão de captura maior */
+.capture-btn {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3em;
 }
 
-.close-btn {
-  position: absolute;
-  right: -80px;
-}
-
-/* Preview da Foto */
+/**
+ * PREVIEW DA FOTO
+ * Estilos para exibição da foto capturada
+ */
 .photo-preview {
   position: fixed;
   top: 0;
@@ -190,6 +222,7 @@
   box-shadow: 0 0 30px rgba(255, 165, 0, 0.5);
 }
 
+/* Botão de download */
 .download-button {
   margin-top: 20px;
   padding: 10px 20px;
@@ -204,7 +237,10 @@
   transform: translateY(-2px);
 }
 
-/* Feedback de Alinhamento */
+/**
+ * FEEDBACK DE ALINHAMENTO
+ * Mensagem de status do alinhamento
+ */
 .alignment-feedback {
   padding: 12px;
   margin: 15px 0;
@@ -213,6 +249,7 @@
   transition: all 0.3s ease;
 }
 
+/* Estado quando alinhado */
 .alignment-feedback.aligned {
   background: rgba(76, 175, 80, 0.3);
   animation: pulse 1.5s infinite;
@@ -224,7 +261,10 @@
   100% { transform: scale(1); }
 }
 
-/* Responsividade */
+/**
+ * RESPONSIVIDADE
+ * Ajustes para telas menores (mobile)
+ */
 @media (max-width: 480px) {
   .compass {
     width: 220px;
@@ -252,7 +292,7 @@
   }
 
   .close-btn {
-    right: -60px;
+    right: -70px;
   }
   
   .camera-preview {
