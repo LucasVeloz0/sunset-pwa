@@ -23,6 +23,8 @@ const App = () => {
   const [cameraActive, setCameraActive] = useState(false); // Controle de estado da câmera
   const [photo, setPhoto] = useState(null); // URL da foto capturada
   const [facingMode, setFacingMode] = useState('environment'); // 'environment' (traseira) ou 'user' (frontal)
+  const [isDaytime, setIsDaytime] = useState(false); // Indica se é dia ou noite
+  const [sunTimes, setSunTimes] = useState({ sunrise: null, sunset: null, solarNoon: null });
 
   // Referências para elementos DOM
   const videoRef = useRef(null);
@@ -102,6 +104,44 @@ const App = () => {
       window.removeEventListener('deviceorientation', handleOrientation);
     };
   }, []);
+
+  // Verificar se é dia ou noite
+  useEffect(() => {
+    if (position) {
+      const updateDayNight = () => {
+        const sunPos = SunCalc.getPosition(new Date(), position.lat, position.lng);
+        setIsDaytime(sunPos.altitude > 0);
+      };
+      
+      updateDayNight();
+      const interval = setInterval(updateDayNight, 60000); // Atualiza a cada minuto
+      
+      return () => clearInterval(interval);
+    }
+  }, [position]);
+
+    // Calcular horários do sol
+  useEffect(() => {
+    if (position) {
+      const updateSunData = () => {
+        const now = new Date();
+        const times = SunCalc.getTimes(now, position.lat, position.lng);
+        const sunPos = SunCalc.getPosition(now, position.lat, position.lng);
+        
+        setSunTimes({
+          sunrise: times.sunrise,
+          sunset: times.sunset,
+          solarNoon: times.solarNoon
+        });
+        setIsDaytime(sunPos.altitude > 0);
+      };
+      
+      updateSunData();
+      const interval = setInterval(updateSunData, 60000); // Atualiza a cada minuto
+      
+      return () => clearInterval(interval);
+    }
+  }, [position]);
 
     /**
    * Efeito para controle da câmera.
@@ -246,9 +286,19 @@ const App = () => {
   // ======================================================================
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${isDaytime ? 'day-theme' : 'night-theme'}`}>
       <h1>🌅 Localizando o Pôr do Sol</h1>
-
+          {/* Seção de informações solares */}
+      <div className="sun-info">
+        <div className="info-card">
+          <span>☀️ Nascer do sol</span>
+          <strong>{formatTime(sunTimes?.sunrise)}</strong>
+        </div>
+        <div className="info-card">
+          <span>🌇 Pôr do sol</span>
+          <strong>{formatTime(sunTimes?.sunset)}</strong>
+        </div>
+      </div>
       {/* Área da câmera */}
       {cameraActive && (
         <div className="camera-container">
@@ -295,15 +345,7 @@ const App = () => {
         </div>
       )}
 
-      {/* Botão para ativar câmera */}
-      {!cameraActive && (
-        <button 
-          className="main-camera-btn"
-          onClick={() => setCameraActive(true)}
-        >
-          📸 Ativar Câmera
-        </button>
-      )}
+
 
       {/* Bússola digital e informações */}
       <div className="compass-wrapper">
@@ -319,15 +361,19 @@ const App = () => {
           <div className="alignment-marker"></div>
         </div>
 
+        {/* Botão para ativar câmera */}
+       {!cameraActive && (
+        <button 
+          className="main-camera-btn"
+          onClick={() => setCameraActive(true)}
+        >
+          📸 Ativar Câmera
+        </button>
+      )}
+
         {/* Painel de informações */}
         <div className="info-panel">
-          {/* Horário do pôr do sol */}
-          <p>⏱ Horário do pôr do sol: {
-            position && 
-            new Date(SunCalc.getTimes(new Date(), position.lat, position.lng).sunset)
-              .toLocaleTimeString()
-          }</p>
-
+         
           {/* Direção do sol */}          
           <p>🧭 Direção: {sunAzimuth.toFixed(1)}°</p>
           {/* Feedback de alinhamento */}          
@@ -345,5 +391,12 @@ const App = () => {
     </div>
   );
 };
+
+// Função utilitária para formatar datas como HH:mm
+function formatTime(date) {
+  if (!date) return '--:--';
+  const d = new Date(date);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 
 export default App;
