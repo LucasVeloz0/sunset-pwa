@@ -352,7 +352,7 @@ const App = () => {
         <div className="compass">
           {/* Seta direcional que aponta para o sol */}          
           <div 
-            className="direction-arrow"
+            className="direction-arrow" 
             style={{ transform: `rotate(${calculateRelativeAngle()}deg)` }}
           >
             <div className="sun-indicator">☀️</div>
