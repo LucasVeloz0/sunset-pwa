@@ -414,12 +414,15 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
 }
   // Suaviza os ângulos de rotação
   useEffect(() => {
-    const sunAngle = calculateContinuousAngle(sunAzimuth);
-    const moonAngle = calculateContinuousAngle(moonAzimuth);
+  if (sunAzimuth === null || moonAzimuth === null || deviceHeading === null) return;
+  
+  // Calcula os ângulos relativos diretamente
+  const sunAngle = (sunAzimuth - deviceHeading + 360) % 360;
+  const moonAngle = (moonAzimuth - deviceHeading + 360) % 360;
     
     // Suavização exponencial
-    setSmoothedSunAngle(prev => prev + (sunAngle - prev) * 0.2);
-    setSmoothedMoonAngle(prev => prev + (moonAngle - prev) * 0.2);
+  setSmoothedSunAngle(prev => smoothAngle(prev, sunAngle, 0.2));
+  setSmoothedMoonAngle(prev => smoothAngle(prev, moonAngle, 0.2));
     
   }, [sunAzimuth, moonAzimuth, deviceHeading]);
 
