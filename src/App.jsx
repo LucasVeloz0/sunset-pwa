@@ -16,7 +16,6 @@ import './App.css';
 
 const App = () => {
   // Estados do aplicativo
-  const [position, setPosition] = useState(null); // Armazena {lat, lng} do usuário
   const [position, setPosition] = useState(null);
   const [sunAzimuth, setSunAzimuth] = useState(0);
   const [deviceHeading, setDeviceHeading] = useState(0);
@@ -30,6 +29,18 @@ const App = () => {
     sunset: null, 
     solarNoon: null 
   });
+  const [celestialBody, setCelestialBody] = useState('sun'); // 'sun' ou 'moon'
+  const [moonAzimuth, setMoonAzimuth] = useState(0);
+  const [moonTimes, setMoonTimes] = useState({ 
+    moonrise: null, 
+    moonset: null 
+  });
+
+  const [moonPhase, setMoonPhase] = useState({
+    fraction: 0,
+    phase: 0,
+    emoji: '🌑'
+  });
 
   // Referências para elementos DOM
   const videoRef = useRef(null);
@@ -39,6 +50,46 @@ const App = () => {
   // Estados para notificações
   const [notificationPermission, setNotificationPermission] = useState('default');
   const [notificationScheduled, setNotificationScheduled] = useState(false);
+
+    // Novos estados para suavização
+const [smoothedSunAngle, setSmoothedSunAngle] = useState(deviceHeading || 0);
+const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
+
+    // ======================================================================
+  // FUNÇÕES UTILITÁRIAS PARA A LUA
+  // ======================================================================
+  
+  /**
+   * Determina o emoji da fase lunar com base na fração iluminada
+   * @param {number} fraction - Fração iluminada (0 a 1)
+   * @returns {string} Emoji representando a fase lunar
+   */
+  const getMoonPhaseEmoji = (fraction) => {
+    if (fraction === 0) return '🌑';         // Lua nova
+    if (fraction < 0.25) return '🌒';        // Crescente inicial
+    if (fraction < 0.5) return '🌓';         // Quarto crescente
+    if (fraction < 0.75) return '🌔';        // Gibosa crescente
+    if (fraction === 1) return '🌕';         // Lua cheia
+    if (fraction > 0.75) return '🌖';        // Gibosa minguante
+    if (fraction > 0.5) return '🌗';         // Quarto minguante
+    return '🌘';                             // Minguante final
+  };
+
+  /**
+   * Obtém o nome da fase lunar com base no valor da fase
+   * @param {number} phase - Valor da fase (0 a 1)
+   * @returns {string} Nome da fase lunar
+   */
+  const getMoonPhaseName = (phase) => {
+    if (phase === 0 || phase === 1) return 'Lua Nova';
+    if (phase < 0.25) return 'Crescente Inicial';
+    if (phase === 0.25) return 'Quarto Crescente';
+    if (phase < 0.5) return 'Gibosa Crescente';
+    if (phase === 0.5) return 'Lua Cheia';
+    if (phase < 0.75) return 'Gibosa Minguante';
+    if (phase === 0.75) return 'Quarto Minguante';
+    return 'Minguante Final';
+  };
 
   // ======================================================================
   // EFEITOS PARA INICIALIZAÇÃO E GERENCIAMENTO DE RECURSOS
@@ -91,14 +142,22 @@ const App = () => {
    * Efeito para cálculo da direção do sol.
    * Executa sempre que a posição do usuário muda.
    */
-  // Calcular direção do sol
-  useEffect(() => {
-    if (position) {
-      // Calcula o azimute do pôr do sol usando a biblioteca SunCalc
+/**
+   * Efeito para cálculo da direção do sol E DA LUA
+   */
+    useEffect(() => {
+     if (position) {
+      // Calcular azimute do sol
       const azimuth = getSunsetDirection(position.lat, position.lng);
       setSunAzimuth(azimuth);
-    }
-  }, [position]);
+
+      // Calcular azimute da lua
+      const now = new Date();
+      const moonPos = SunCalc.getMoonPosition(now, position.lat, position.lng);
+      const moonAzimuth = (moonPos.azimuth * 180 / Math.PI + 180) % 360;
+      setMoonAzimuth(moonAzimuth);
+       }
+     }, [position]);
   /**
    * Efeito para configuração do sensor de orientação.
    * Adiciona listener para eventos de orientação do dispositivo.
@@ -131,7 +190,9 @@ const App = () => {
     };
   }, []);
 
-  // Verificar se é dia ou noite e calcular horários do sol
+  /**
+   * Efeito para cálculo dos horários do sol E DA LUA
+   */
   useEffect(() => {
     if (position) {
       const updateSunData = () => {
@@ -145,6 +206,22 @@ const App = () => {
           solarNoon: times.solarNoon
         });
         setIsDaytime(sunPos.altitude > 0);
+
+        // Calcular horários da lua
+        const moonTimes = SunCalc.getMoonTimes(now, position.lat, position.lng);
+        setMoonTimes({
+          moonrise: moonTimes.rise,
+          moonset: moonTimes.set
+        });
+
+        // Calcular fase da lua
+        const moonIllumination = SunCalc.getMoonIllumination(now);
+        setMoonPhase({
+          fraction: moonIllumination.fraction,
+          phase: moonIllumination.phase,
+          emoji: getMoonPhaseEmoji(moonIllumination.fraction),
+          name: getMoonPhaseName(moonIllumination.phase)
+        });
       };
       
       updateSunData();
@@ -152,7 +229,6 @@ const App = () => {
       
       return () => {
         clearInterval(interval);
-        // Limpar timeout ao desmontar
         if (notificationTimeout.current) {
           clearTimeout(notificationTimeout.current);
         }
@@ -326,40 +402,117 @@ const App = () => {
   // ======================================================================
 
   /** 
-   * Calcula ângulo relativo entre direção do sol e dispositivo 
-   * @ returns number Ângulo em graus 0-360
-    */
-  const calculateRelativeAngle = () => {
-    let relativeAngle = (sunAzimuth - deviceHeading + 360) % 360;
+   * Calcula ângulo relativo contínuo (0-360)
+   * @param {number} targetAzimuth
+   * @returns number Ângulo em graus 0-360
+   */
+function calculateContinuousAngle(targetAzimuth, previousAngle) {
+  // Calcula a diferença absoluta
+  let diff = (targetAzimuth - deviceHeading + 360) % 360;
   
-  // Suaviza a transição quando passa pelo ponto 0/360
-    if (relativeAngle > 180) {
-      relativeAngle -= 360;
+  // Normaliza para 0-360
+  if (diff < 0) diff += 360;
+  
+  // Mantém a continuidade quando cruza 0/360
+  if (previousAngle !== undefined) {
+    const wrappedDiff = Math.abs(diff - previousAngle);
+    const unwrappedDiff = Math.abs(diff - (previousAngle + 360));
+    
+    if (unwrappedDiff < wrappedDiff) {
+      return previousAngle + (diff - (previousAngle + 360));
     }
-    return relativeAngle;
-  };
+  }
+  
+  return diff;
+}
 
-  /** Verifica se dispositivo está alinhado com o sol (margem de 15 graus) */  
-  const isAligned = Math.abs(calculateRelativeAngle()) < 15;
+  /** 
+   * Calcula a diferença angular para feedback de alinhamento
+   * @param {number} targetAzimuth
+   * @returns number Diferença angular em graus 0-180
+   */
+  function calculateAngleDifference(targetAzimuth) {
+  const diff = Math.abs(targetAzimuth - deviceHeading) % 360;
+  return Math.min(diff, 360 - diff);
+}
+  // Suaviza os ângulos de rotação
+  useEffect(() => {
+    const sunAngle = calculateContinuousAngle(sunAzimuth);
+    const moonAngle = calculateContinuousAngle(moonAzimuth);
+    
+    // Suavização exponencial
+    setSmoothedSunAngle(prev => prev + (sunAngle - prev) * 0.2);
+    setSmoothedMoonAngle(prev => prev + (moonAngle - prev) * 0.2);
+    
+  }, [sunAzimuth, moonAzimuth, deviceHeading]);
+
+  /** Verifica alinhamento com o corpo celeste selecionado */
+  const targetAzimuth = celestialBody === 'sun' ? sunAzimuth : moonAzimuth;
+  const isAligned = calculateAngleDifference(targetAzimuth) < 15;
 
   // ======================================================================
   // RENDERIZAÇÃO DA INTERFACE
   // ======================================================================
 
   return (
-    <div className={`app-container ${isDaytime ? 'day-theme' : 'night-theme'}`}>
-      <h1>🌅 Localizando o Pôr do Sol</h1>
-          {/* Seção de informações solares */}
+ <div className={`app-container ${isDaytime ? 'day-theme' : 'night-theme'}`}>
+      <h1>{celestialBody === 'sun' ? '🌅 Localizando o Sol' : '🌙 Localizando a Lua'}</h1>
       
-      <div className="sun-info">
-        <div className="info-card">
-          <span>☀️ Nascer do sol</span>
-          <strong>{formatTime(sunTimes?.sunrise)}</strong>
-        </div>
-        <div className="info-card">
-          <span>🌇 Pôr do sol</span>
-          <strong>{formatTime(sunTimes?.sunset)}</strong>
-        </div>
+      {/* Botão de alternância */}
+      <div className="celestial-toggle">
+        <button 
+          className={celestialBody === 'sun' ? 'active' : ''}
+          onClick={() => setCelestialBody('sun')}
+        >
+          ☀️ Sol
+        </button>
+        <button 
+          className={celestialBody === 'moon' ? 'active' : ''}
+          onClick={() => setCelestialBody('moon')}
+        >
+          🌙 Lua
+        </button>
+      </div>
+
+      {/* Informações do corpo celeste */}
+      <div className="celestial-info">
+        {celestialBody === 'sun' ? (
+          <div className="info-cards">
+            <div className="info-card">
+              <span>☀️ Nascer do sol</span>
+              <strong>{formatTime(sunTimes?.sunrise)}</strong>
+            </div>
+            <div className="info-card">
+              <span>🌇 Pôr do sol</span>
+              <strong>{formatTime(sunTimes?.sunset)}</strong>
+            </div>
+          </div>
+        ) : (
+          <div className="info-cards">
+            <div className="info-card">
+              <span>🌕 Nascer da lua</span>
+              <strong>{formatTime(moonTimes?.moonrise)}</strong>
+            </div>
+            <div className="info-card">
+              <span>🌑 Pôr da lua</span>
+              <strong>{formatTime(moonTimes?.moonset)}</strong>
+            </div>
+            {/* Novo card para fase lunar */}
+            <div className="info-card moon-phase">
+              <span>{moonPhase.emoji} Fase</span>
+              <strong>{moonPhase.name}</strong>
+              <div className="moon-phase-bar">
+                <div 
+                  className="moon-phase-fill"
+                  style={{ width: `${moonPhase.fraction * 100}%` }}
+                ></div>
+              </div>
+              <span className="moon-percentage">
+                {Math.round(moonPhase.fraction * 100)}% iluminada
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       {/* Área da câmera */}
       
@@ -403,17 +556,25 @@ const App = () => {
       )}
 
       {/* Bússola digital e informações */}
-      <div className="compass-wrapper">
+      <div className="compass-wrapper ">
         <div className="compass">
-          {/* Seta direcional que aponta para o sol */}          
+          {/* Ponteiro do Sol (sempre visível) */}
           <div 
-            className="direction-arrow" 
-            style={{ transform: `rotate(${calculateRelativeAngle()}deg)` }}
+            className={`direction-arrow ${celestialBody === 'sun' ? 'active' : 'secondary'}`} 
+            style={{ transform: `rotate(${smoothedSunAngle}deg)` }}
           >
-            <div className="sun-indicator">☀️</div>
+            <div className="celestial-indicator">☀️</div>
           </div>
-          {/* Marcador de alinhamento */}          
-          <div className="alignment-marker"></div>
+          
+          {/* Ponteiro da Lua (sempre visível) */}
+          <div 
+            className={`direction-arrow ${celestialBody === 'moon' ? 'active' : 'secondary'}`} 
+            style={{ transform: `rotate(${smoothedMoonAngle}deg)` }}
+          >
+            <div className="celestial-indicator moon-indicator">
+              {moonPhase.emoji}              
+            </div>            
+          </div>          
         </div>
 
         {/* Botão para ativar câmera */}
@@ -428,14 +589,18 @@ const App = () => {
 
         {/* Painel de informações */}
         <div className="info-panel">
-         
-          {/* Direção do sol */}          
-          <p>🧭 Direção: {sunAzimuth.toFixed(1)}°</p>
-          {/* Feedback de alinhamento */}          
+          <p>
+            🧭 Direção: {celestialBody === 'sun'
+              ? `${sunAzimuth.toFixed(1)}° (Sol)`
+              : `${moonAzimuth.toFixed(1)}° (Lua)`}
+          </p>
           <div className={`alignment-feedback ${isAligned ? 'aligned' : ''}`}>
-            {isAligned ? '⭐ ALINHADO! ⭐' : 'Gire o dispositivo... ➡️'}
+            {isAligned
+              ? `⭐ ALINHADO COM ${celestialBody === 'sun' ? 'O SOL' : 'A LUA'}! ⭐`
+              : `Gire o dispositivo para ${celestialBody === 'sun' ? 'o Sol' : 'a Lua'}... ➡️`}
           </div>
         </div>
+
       </div>
 
       {/* Exibição de erros */}
