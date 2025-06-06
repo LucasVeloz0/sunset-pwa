@@ -1,4 +1,4 @@
-import * as SunCalc from 'suncalc'; // Adicione esta linha no topo
+import * as SunCalc from 'suncalc';
 
 /**
  * Calcula a direção do pôr do sol em graus
@@ -10,7 +10,7 @@ export const getSunsetDirection = (lat, lng) => {
   const now = new Date();
   const sunsetTime = SunCalc.getTimes(now, lat, lng).sunset;
   const sunPos = SunCalc.getPosition(sunsetTime, lat, lng);
-    // Converte radianos para graus e normaliza para 0-360
+  // Converte radianos para graus e normaliza para 0-360
   return ((sunPos.azimuth * 180 / Math.PI) + 180) % 360;
 };
 
@@ -38,11 +38,15 @@ export const normalizeAngle = (angle) => {
   return angle;
 };
 
-/**
- * Calcula a diferença angular mais curta entre dois ângulos
- */
-export const shortestAngleDiff = (target, current) => {
-  const diff = normalizeAngle(target - current);
-  return diff;
+// Função corrigida para suavização angular circular
+export const smoothAngle = (previous, current, factor) => {
+  // Calcula a diferença levando em conta a circularidade
+  let diff = current - previous;
+  
+  // Ajusta para o menor caminho circular
+  if (diff > 180) diff -= 360;
+  if (diff < -180) diff += 360;
+  
+  // Aplica o fator de suavização
+  return previous + diff * factor;
 };
-

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as SunCalc from 'suncalc';
-import { getSunsetDirection, normalizeOrientation } from './utils/sunUtils';
+import { getSunsetDirection, normalizeOrientation, smoothAngle } from './utils/sunUtils';
 import './App.css';
 
 
@@ -401,30 +401,7 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
   // FUNÇÕES DE CÁLCULO E RENDERIZAÇÃO
   // ======================================================================
 
-  /** 
-   * Calcula ângulo relativo contínuo (0-360)
-   * @param {number} targetAzimuth
-   * @returns number Ângulo em graus 0-360
-   */
-function calculateContinuousAngle(targetAzimuth, previousAngle) {
-  // Calcula a diferença absoluta
-  let diff = (targetAzimuth - deviceHeading + 360) % 360;
-  
-  // Normaliza para 0-360
-  if (diff < 0) diff += 360;
-  
-  // Mantém a continuidade quando cruza 0/360
-  if (previousAngle !== undefined) {
-    const wrappedDiff = Math.abs(diff - previousAngle);
-    const unwrappedDiff = Math.abs(diff - (previousAngle + 360));
-    
-    if (unwrappedDiff < wrappedDiff) {
-      return previousAngle + (diff - (previousAngle + 360));
-    }
-  }
-  
-  return diff;
-}
+
 
   /** 
    * Calcula a diferença angular para feedback de alinhamento
@@ -449,6 +426,19 @@ function calculateContinuousAngle(targetAzimuth, previousAngle) {
   /** Verifica alinhamento com o corpo celeste selecionado */
   const targetAzimuth = celestialBody === 'sun' ? sunAzimuth : moonAzimuth;
   const isAligned = calculateAngleDifference(targetAzimuth) < 15;
+
+  // Adicione esta função logo após a função calculateAngleDifference (por volta da linha 350)
+function calculateContinuousAngle(targetAzimuth) {
+  // Calcula a diferença absoluta
+  let diff = targetAzimuth - deviceHeading;
+  
+  // Normaliza para o intervalo [-180, 180]
+  if (diff > 180) diff -= 360;
+  if (diff < -180) diff += 360;
+  
+  // Retorna o ângulo relativo normalizado
+  return (deviceHeading + diff + 360) % 360;
+}
 
   // ======================================================================
   // RENDERIZAÇÃO DA INTERFACE
@@ -559,22 +549,26 @@ function calculateContinuousAngle(targetAzimuth, previousAngle) {
       <div className="compass-wrapper ">
         <div className="compass">
           {/* Ponteiro do Sol (sempre visível) */}
-          <div 
-            className={`direction-arrow ${celestialBody === 'sun' ? 'active' : 'secondary'}`} 
-            style={{ transform: `rotate(${smoothedSunAngle}deg)` }}
-          >
-            <div className="celestial-indicator">☀️</div>
-          </div>
-          
-          {/* Ponteiro da Lua (sempre visível) */}
-          <div 
-            className={`direction-arrow ${celestialBody === 'moon' ? 'active' : 'secondary'}`} 
-            style={{ transform: `rotate(${smoothedMoonAngle}deg)` }}
-          >
-            <div className="celestial-indicator moon-indicator">
-              {moonPhase.emoji}              
-            </div>            
-          </div>          
+         <div 
+  className={`direction-arrow ${celestialBody === 'sun' ? 'active' : 'secondary'}`} 
+  style={{ 
+    transform: `rotate(${typeof smoothedSunAngle === 'number' ? smoothedSunAngle : 0}deg)` 
+  }}
+>
+  <div className="celestial-indicator">☀️</div>
+</div>
+
+{/* Ponteiro da Lua */}
+<div 
+  className={`direction-arrow ${celestialBody === 'moon' ? 'active' : 'secondary'}`} 
+  style={{ 
+    transform: `rotate(${typeof smoothedMoonAngle === 'number' ? smoothedMoonAngle : 0}deg)` 
+  }}
+>
+  <div className="celestial-indicator moon-indicator">
+    {moonPhase.emoji}              
+  </div>            
+</div>        
         </div>
 
         {/* Botão para ativar câmera */}
@@ -620,3 +614,7 @@ function formatTime(date) {
 }
 
 export default App;
+
+function calculateRelativeAngle(targetAzimuth) {
+  return normalizeAngle(targetAzimuth - deviceHeading);
+}
