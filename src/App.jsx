@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as SunCalc from 'suncalc';
-import { getSunsetDirection, normalizeOrientation, smoothAngle } from './utils/sunUtils';
+import { getSunsetDirection, normalizeOrientation, smoothAngle, normalizeAngle } from './utils/sunUtils';
 import './App.css';
 
 
@@ -412,19 +412,20 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
   const diff = Math.abs(targetAzimuth - deviceHeading) % 360;
   return Math.min(diff, 360 - diff);
 }
-  // Suaviza os ângulos de rotação
-  useEffect(() => {
+  function calculateRelativeAngle(targetAzimuth) {
+  return normalizeAngle(targetAzimuth - deviceHeading);
+}
+
+// Suaviza os ângulos de rotação
+useEffect(() => {
   if (sunAzimuth === null || moonAzimuth === null || deviceHeading === null) return;
-  
-  // Calcula os ângulos relativos diretamente
-  const sunAngle = (sunAzimuth - deviceHeading + 360) % 360;
-  const moonAngle = (moonAzimuth - deviceHeading + 360) % 360;
-    
-    // Suavização exponencial
+
+  const sunAngle = calculateRelativeAngle(sunAzimuth);
+  const moonAngle = calculateRelativeAngle(moonAzimuth);
+
   setSmoothedSunAngle(prev => smoothAngle(prev, sunAngle, 0.2));
   setSmoothedMoonAngle(prev => smoothAngle(prev, moonAngle, 0.2));
-    
-  }, [sunAzimuth, moonAzimuth, deviceHeading]);
+}, [sunAzimuth, moonAzimuth, deviceHeading]);
 
   /** Verifica alinhamento com o corpo celeste selecionado */
   const targetAzimuth = celestialBody === 'sun' ? sunAzimuth : moonAzimuth;
@@ -555,7 +556,7 @@ function calculateContinuousAngle(targetAzimuth) {
          <div 
   className={`direction-arrow ${celestialBody === 'sun' ? 'active' : 'secondary'}`} 
   style={{ 
-    transform: `rotate(${typeof smoothedSunAngle === 'number' ? smoothedSunAngle : 0}deg)` 
+    transform: `rotate(${smoothedSunAngle}deg)` 
   }}
 >
   <div className="celestial-indicator">☀️</div>
@@ -617,7 +618,3 @@ function formatTime(date) {
 }
 
 export default App;
-
-function calculateRelativeAngle(targetAzimuth) {
-  return normalizeAngle(targetAzimuth - deviceHeading);
-}

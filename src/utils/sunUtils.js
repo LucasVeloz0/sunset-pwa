@@ -20,3 +20,13 @@ export const smoothAngle = (previous, current, factor) => {
   
   return previous + diff * factor;
 };
+
+/**
+ * Normaliza um ângulo para o intervalo [-180, 180]
+ */
+export const normalizeAngle = (angle) => {
+  angle = angle % 360;
+  if (angle > 180) angle -= 360;
+  if (angle < -180) angle += 360;
+  return angle;
+};
