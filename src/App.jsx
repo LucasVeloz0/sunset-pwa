@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as SunCalc from 'suncalc';
-import { getSunsetDirection, normalizeOrientation, smoothAngle, normalizeAngle } from './utils/sunUtils';
+import { getCurrentSunAzimuth, getCurrentMoonAzimuth, normalizeOrientation, smoothAngle, normalizeAngle } from './utils/sunUtils';
 import './App.css';
 
 
@@ -136,6 +136,17 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
       enableHighAccuracy: true,
       timeout: 5000
     });
+
+        // Configurar atualização contínua
+    const watchId = navigator.geolocation.watchPosition(
+      handleSuccess,
+      handleError,
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
   /**
@@ -145,19 +156,24 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
 /**
    * Efeito para cálculo da direção do sol E DA LUA
    */
-    useEffect(() => {
-     if (position) {
-      // Calcular azimute do sol
-      const azimuth = getSunsetDirection(position.lat, position.lng);
-      setSunAzimuth(azimuth);
+  useEffect(() => {
+    if (position) {
+      const updateAzimuths = () => {
+        // Calcular azimute do sol
+        const sunAzimuth = getCurrentSunAzimuth(position.lat, position.lng);
+        setSunAzimuth(sunAzimuth);
 
-      // Calcular azimute da lua
-      const now = new Date();
-      const moonPos = SunCalc.getMoonPosition(now, position.lat, position.lng);
-      const moonAzimuth = (moonPos.azimuth * 180 / Math.PI + 180) % 360;
-      setMoonAzimuth(moonAzimuth);
-       }
-     }, [position]);
+        // Calcular azimute da lua
+        const moonAzimuth = getCurrentMoonAzimuth(position.lat, position.lng);
+        setMoonAzimuth(moonAzimuth);
+      };
+      
+      updateAzimuths();
+      const interval = setInterval(updateAzimuths, 60000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [position]);
   /**
    * Efeito para configuração do sensor de orientação.
    * Adiciona listener para eventos de orientação do dispositivo.
@@ -195,8 +211,10 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
    */
   useEffect(() => {
     if (position) {
-      const updateSunData = () => {
+      const updateCelestialData = () => {
         const now = new Date();
+        
+        // Dados do sol
         const times = SunCalc.getTimes(now, position.lat, position.lng);
         const sunPos = SunCalc.getPosition(now, position.lat, position.lng);
         
@@ -207,14 +225,13 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
         });
         setIsDaytime(sunPos.altitude > 0);
 
-        // Calcular horários da lua
+        // Dados da lua
         const moonTimes = SunCalc.getMoonTimes(now, position.lat, position.lng);
         setMoonTimes({
           moonrise: moonTimes.rise,
           moonset: moonTimes.set
         });
 
-        // Calcular fase da lua
         const moonIllumination = SunCalc.getMoonIllumination(now);
         setMoonPhase({
           fraction: moonIllumination.fraction,
@@ -224,8 +241,8 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
         });
       };
       
-      updateSunData();
-      const interval = setInterval(updateSunData, 60000);
+      updateCelestialData();
+      const interval = setInterval(updateCelestialData, 60000);
       
       return () => {
         clearInterval(interval);
@@ -250,20 +267,17 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
     }
   }, [sunTimes, notificationPermission, notificationScheduled]);
 
-  // Função para agendar notificação do pôr do sol
+    // Função para agendar notificação do pôr do sol
   const scheduleSunsetNotification = useCallback(() => {
-    // Limpar notificações anteriores
     if (notificationTimeout.current) {
       clearTimeout(notificationTimeout.current);
     }
     
     if (!sunTimes.sunset) return;
 
-    // Calcular 15 minutos antes do pôr do sol
     const notificationTime = new Date(sunTimes.sunset.getTime() - 15 * 60000);
     const now = new Date();
     
-    // Verificar se o horário ainda não passou
     if (notificationTime <= now) return;
     
     const timeUntilNotification = notificationTime - now;
@@ -275,7 +289,6 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
           icon: '/sunset-icon.png'
         });
       }
-      // Resetar estado para permitir novo agendamento
       setNotificationScheduled(false);
     }, timeUntilNotification);
     
@@ -408,13 +421,16 @@ const [smoothedMoonAngle, setSmoothedMoonAngle] = useState(deviceHeading || 0);
    * @param {number} targetAzimuth
    * @returns number Diferença angular em graus 0-180
    */
-  function calculateAngleDifference(targetAzimuth) {
-  const diff = Math.abs(targetAzimuth - deviceHeading) % 360;
-  return Math.min(diff, 360 - diff);
-}
-  function calculateRelativeAngle(targetAzimuth) {
-  return normalizeAngle(targetAzimuth - deviceHeading);
-}
+  const calculateAngleDifference = (targetAzimuth) => {
+    const diff = Math.abs(targetAzimuth - deviceHeading) % 360;
+    return Math.min(diff, 360 - diff);
+  };
+
+  const calculateRelativeAngle = (targetAzimuth) => {
+    return normalizeAngle(targetAzimuth - deviceHeading);
+  };
+
+
 
 // Suaviza os ângulos de rotação
 useEffect(() => {
@@ -431,18 +447,6 @@ useEffect(() => {
   const targetAzimuth = celestialBody === 'sun' ? sunAzimuth : moonAzimuth;
   const isAligned = calculateAngleDifference(targetAzimuth) < 15;
 
-  // Adicione esta função logo após a função calculateAngleDifference (por volta da linha 350)
-function calculateContinuousAngle(targetAzimuth) {
-  // Calcula a diferença absoluta
-  let diff = targetAzimuth - deviceHeading;
-  
-  // Normaliza para o intervalo [-180, 180]
-  if (diff > 180) diff -= 360;
-  if (diff < -180) diff += 360;
-  
-  // Retorna o ângulo relativo normalizado
-  return (deviceHeading + diff + 360) % 360;
-}
 
   // ======================================================================
   // RENDERIZAÇÃO DA INTERFACE
@@ -508,8 +512,9 @@ function calculateContinuousAngle(targetAzimuth) {
           </div>
         )}
       </div>
-      {/* Área da câmera */}
-      
+
+
+      {/* Área da câmera */}      
       {cameraActive && (
         <div className="camera-container">
           <video
@@ -559,21 +564,21 @@ function calculateContinuousAngle(targetAzimuth) {
     transform: `rotate(${smoothedSunAngle}deg)` 
   }}
 >
-  <div className="celestial-indicator">☀️</div>
+  <div className="celestial-indicator sun-indicator">☀️</div>
 </div>
 
 {/* Ponteiro da Lua */}
 <div 
   className={`direction-arrow ${celestialBody === 'moon' ? 'active' : 'secondary'}`} 
   style={{ 
-    transform: `rotate(${typeof smoothedMoonAngle === 'number' ? smoothedMoonAngle : 0}deg)` 
+    transform: `rotate(${smoothedMoonAngle}deg)` 
   }}
 >
   <div className="celestial-indicator moon-indicator">
     {moonPhase.emoji}              
   </div>            
-</div>        
-        </div>
+ </div>   
+</div>
 
         {/* Botão para ativar câmera */}
         {!cameraActive && (

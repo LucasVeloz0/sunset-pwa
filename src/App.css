@@ -1,11 +1,33 @@
+/* App.css */
+:root {
+  --day-bg-start: #1a2980;
+  --day-bg-end: #26d0ce;
+  --night-bg-start: #0f0c29;
+  --night-bg-end: #302b63;
+  --card-bg: rgba(0, 0, 0, 0.4);
+  --pointer-sun: linear-gradient(to top, #FF512F, #F09819);
+  --pointer-moon: linear-gradient(to top, #6DD5FA, #FFFFFF);
+  --error-color: #ff6b6b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* Ajuste global para remover qualquer scroll lateral e superior */
 html, body {
   width: 100vw;
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
   box-sizing: border-box;
 }
 
@@ -15,30 +37,32 @@ body, html, .app-container {
 
 /* Layout Base */
 .app-container {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   min-height: 100vh;
   width: 100vw;
-  max-width: 100vw;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
-  color: white;
-  transition: background 1s ease;
-  box-sizing: border-box;
+  padding: 20px;
 }
 
 /* Tema diurno */
-.app-container.day-theme {
-  background: linear-gradient(to bottom, #87ceeb, #e0f7fa);
-  color: #333;
+.day-theme {
+  background: linear-gradient(to bottom, var(--day-bg-start), var(--day-bg-end));
+  color: white;
+}
+
+.night-theme {
+  background: linear-gradient(to bottom, var(--night-bg-start), var(--night-bg-end));
+  color: white;
 }
 
 h1 {
   padding: 20px;
-  font-size: 2.0em;
+  font-size: 1.8em;
   margin: 0;
   text-align: center;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
   font-weight: 600;
   color: #ff9800; /* Cor do título */
 }
@@ -64,18 +88,14 @@ h1 {
 }
 
 .compass {
-  width: 220px;
-  height: 220px;
+  position: relative;
+  width: 300px;
+  height: 300px;
   margin: 0 auto;
+  border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  position: relative;  
-  transition: all 0.5s ease;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: width 0.3s, height 0.3s;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 @media (min-width: 900px) {
@@ -138,6 +158,7 @@ h1 {
 }
 
 
+
 @keyframes sun-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.1); }
@@ -180,28 +201,32 @@ h1 {
  * Exibe dados do pôr do sol
  */
 .info-panel {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 30px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
-  max-width: 500px;
+  margin-top: 20px;
+  background: var(--card-bg);
+  border-radius: 15px;
+  padding: 15px;
+  width: 100%;
   backdrop-filter: blur(5px);
 }
 
 .alignment-feedback {
-  padding: 6px 4px;
-  margin: 0;
-  border-radius: 6px;
-  background: rgba(255, 0, 0, 0.18);
-  font-size: 0.95em;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  background: rgba(255, 0, 0, 0.3);
+  transition: background 0.5s ease;
 }
 
 .alignment-feedback.aligned {
-  background: rgba(76, 175, 80, 0.18);
-  animation: pulse 1.5s infinite;
+  background: rgba(0, 255, 0, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
 }
 
 /**
@@ -209,24 +234,23 @@ h1 {
  * Estilos para botões de ação
  */
 .main-camera-btn {
-  padding: 12px 24px;
-  font-size: 1.1em;
-  background: #2196f3;
-  color: white;
+  margin-top: 20px;
+  padding: 12px 25px;
   border: none;
-  border-radius: 25px;
+  border-radius: 30px;
+  background: linear-gradient(to right, #ff512f, #f09819);
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: background 0.3s;
-  display: block;
-  margin: 18px auto;
-  width: 90vw;
-  max-width: 340px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
   
 }
 
 .main-camera-btn:hover {
-  background: #1976d2;
   transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /**
@@ -235,27 +259,20 @@ h1 {
  */
 .camera-container {
   position: relative;
-  width: 100vw;
-  max-width: 600px;
-  min-width: 220px;
-  margin: 0 auto 18px auto;
-  border-radius: 15px;
+  width: 100%;
+  max-width: 500px;
+  margin: 20px auto 0;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
-  background: #000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 /* Elemento de vídeo para preview */
 .camera-preview {
-  width: 100vw;
-  max-width: 100vw;
-  min-width: 0;
-  height: 50vh;
-  min-height: 140px;
-  max-height: 60vh;
+  width: 100%;
+  height: 400px;
   background: #000;
   object-fit: cover;
-  display: block;
 }
 
 .camera-preview.mirrored {
@@ -265,15 +282,12 @@ h1 {
 /* CONTROLES DA CÂMERA - NOVO ESTILO */
 .camera-controls {
   position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 20px;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 300px;
-  z-index: 2;
+  gap: 20px;
 }
 
 .camera-btn {
@@ -281,28 +295,20 @@ h1 {
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(5px);
   cursor: pointer;
   transition: all 0.3s ease;
   color: white;
-  font-size: 1.2em;
+  font-size: 1.3em;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s, transform 0.3s;
 }
 
 .camera-btn:hover {
   transform: scale(1.1);
-  background: rgba(255,255,255,0.2);
-}
-
-/* Botão de captura maior */
-.capture-btn {
-  width: 40px;
-  height: 40px;
-  font-size: 1.3em;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 /**
@@ -310,24 +316,35 @@ h1 {
  * Estilos para exibição da foto capturada
  */
 .photo-preview {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.9);
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  z-index: 1000;
+  align-items: center;
+  z-index: 100;
 }
 
 .photo-preview img {
-  max-width: 96vw;
-  max-height: 70vh;
+  max-width: 90%;
+  max-height: 80%;
   border-radius: 10px;
-  box-shadow: 0 0 30px rgba(255, 165, 0, 0.5);
+}
+
+
+.download-button, .close-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 30px;
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 /* Botão de download */
@@ -347,14 +364,8 @@ h1 {
 }
 
 .close-button {
+  background: #f44336;
   margin-top: 10px;
-  padding: 8px 16px;
-  background: #d32f2f;
-  color: white;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.3s;
 }
 
 .close-button:hover {
@@ -385,12 +396,13 @@ h1 {
 
 
 .info-card {
-  padding: 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  text-align: center;
+  background: var(--card-bg);
+  border-radius: 15px;
+  padding: 15px;
+  min-width: 140px;
+  flex: 1;
   backdrop-filter: blur(5px);
-  font-size: 1em;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 
@@ -400,14 +412,13 @@ h1 {
 
 .info-card span {
   display: block;
-  font-size: 0.9em;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
   opacity: 0.8;
-  margin-bottom: 4px;
 }
 
 .info-card strong {
   font-size: 1.2em;
-  font-weight: 500;
 }
 
 /* Ajustes para tema diurno */
@@ -453,25 +464,26 @@ h1 {
 /* Botões de alternância */
 .celestial-toggle {
   display: flex;
-  justify-content: center;
-  margin: 12px 0;
-  gap: 10px;
+  margin-bottom: 20px;
+  gap: 15px;
 }
 
 .celestial-toggle button {
-  padding: 8px 15px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 20px;
-  background-color: #4a6fa5;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
   color: white;
+  font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
   
 }
 
 .celestial-toggle button.active {
-  background-color: #ff6b6b;
-  box-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
 }
 
 /* Indicadores celestes */
@@ -523,50 +535,55 @@ h1 {
 
 /* Layout das informações */
 .celestial-info {
-  margin: 10px 0;
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 20px;
 }
 
 .info-cards {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 15px;
   width: 100%;
   max-width: 350px;
   margin: 0 auto;
 }
 
 
+.sun-indicator {
+  color: #FF9800;
+}
 
+.moon-indicator {
+  color: #E0E0E0;
+}
 
 
 /* Estilos para a fase lunar */
 .moon-phase {
-  grid-column: span 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px;
+  margin-top: 10px;
+  font-size: 2.5rem;
 }
 
 .moon-phase-bar {
-  width: 100%;
   height: 8px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  margin: 8px 0;
+  margin: 10px 0;
   overflow: hidden;
 }
 
 .moon-phase-fill {
   height: 100%;
-  background: linear-gradient(90deg, #2c3e50, #3498db);
+  background: linear-gradient(to right, #a1c4fd, #c2e9fb);
   border-radius: 4px;
-  transition: width 0.5s ease;
 }
 
 .moon-percentage {
-  font-size: 0.85rem;
-  opacity: 0.8;
+  font-size: 0.8rem;
+  opacity: 0.7;
 }
 
 /* Ajustes para tema noturno */
@@ -596,12 +613,9 @@ h1 {
     width: 100vw;
     margin-left: 0;
     margin-right: 0;
-  }
-  .compass { width: 180px; height: 180px; }
-  .camera-preview { height: 40vh; min-height: 100px; }
+  } 
   .photo-preview img { max-width: 98vw; max-height: 60vh; }
   .main-camera-btn { width: 98vw; max-width: 98vw; }
-  .info-cards { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
@@ -610,9 +624,18 @@ h1 {
     max-width: 98vw;
     gap: 6px;
   }
+ 
+    .compass {
+    width: 250px;
+    height: 250px;
+  }
+  
   .info-card {
-    min-width: 0;
-    padding: 6px;
-    font-size: 0.95em;
+    min-width: 100px;
+    padding: 10px;
+  }
+  
+  .camera-preview {
+    height: 300px;
   }
 }

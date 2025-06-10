@@ -1,10 +1,21 @@
 import * as SunCalc from 'suncalc';
 
-export const getSunsetDirection = (lat, lng) => {
+/**
+ * Obtém o azimute atual do sol em graus (0 a 360)
+ */
+export const getCurrentSunAzimuth = (lat, lng) => {
   const now = new Date();
-  const sunsetTime = SunCalc.getTimes(now, lat, lng).sunset;
-  const sunPos = SunCalc.getPosition(sunsetTime, lat, lng);
+  const sunPos = SunCalc.getPosition(now, lat, lng);
   return ((sunPos.azimuth * 180 / Math.PI) + 180) % 360;
+};
+
+/**
+ * Obtém o azimute atual da lua em graus (0 a 360)
+ */
+export const getCurrentMoonAzimuth = (lat, lng) => {
+  const now = new Date();
+  const moonPos = SunCalc.getMoonPosition(now, lat, lng);
+  return ((moonPos.azimuth * 180 / Math.PI) + 180) % 360;
 };
 
 export const normalizeOrientation = (alpha) => {
