@@ -496,7 +496,7 @@ useEffect(() => {
               <strong>{formatTime(moonTimes?.moonset)}</strong>
             </div>
             {/* Novo card para fase lunar */}
-            <div className="info-card moon-phase">
+            <div className="info-card moon-phase moon-phase-card">
               <span>{moonPhase.emoji} Fase</span>
               <strong>{moonPhase.name}</strong>
               <div className="moon-phase-bar">
