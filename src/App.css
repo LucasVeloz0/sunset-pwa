@@ -16,11 +16,14 @@
   padding: 0;
 }
 
+html, body {
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  height: 100vh;
-  overflow: hidden;
-  width: 100vw;
   min-height: 100vh;
 }
 
@@ -68,11 +71,18 @@ h1 {
  * Estilos para exibição de mensagens de erro
  */
 .error-banner {
-  background: #d32f2f;
-  padding: 12px;
-  margin: 16px auto;
-  max-width: 95vw;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: var(--error-color, #d32f2f);
+  color: white;
   border-radius: 8px;
+  font-weight: bold;
+  z-index: 9999;
+  max-width: 95vw;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   animation: shake 0.5s;
 }
 
@@ -84,17 +94,32 @@ h1 {
 
 .compass {
   position: relative;
-  width: 240px;
-  height: 240px;
+  width: 180px;
+  height: 180px;
+  max-width: 90vw;
+  max-height: 90vw;
   margin: 0 auto;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   background: rgba(0, 0, 0, 0.2);
+  transition: width 0.3s, height 0.3s;
 }
 
+/* Responsividade para a bússola */
+@media (max-width: 700px) {
+  .compass {
+    width: 180px;
+    height: 180px;
+  }
+}
 
-
+@media (max-width: 400px) {
+  .compass {
+    width: 120px;
+    height: 120px;
+  }
+}
 
 /* Estado de alinhamento */
 .compass.aligned {
@@ -135,7 +160,7 @@ h1 {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 4px;
+  width: 5px;
   height: 50%; /* seta ocupa metade do raio do círculo */
   background: #ff9800;
   transform-origin: 50% 100%;
@@ -424,9 +449,9 @@ h1 {
 
 /* Responsividade para o componente de bússola */
 .compass-wrapper {
-  margin: 3rem auto;
+  margin: auto;
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -467,7 +492,6 @@ h1 {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  flex: 1;
   font-size: clamp(0.8rem, 3.5vw, 1rem); /* Fonte responsiva */
   transition: all 0.3s;
   
@@ -512,9 +536,9 @@ h1 {
 
 .celestial-indicator {
   position: absolute;
-  top: -50px;
-  left: -19px;
-  font-size: 40px;
+  top: -45px;
+  left: auto;
+  font-size: 2.2em;
   transition: transform 0.3s;
   filter: drop-shadow(0 0 10px rgba(255, 165, 0, 0.7));
   animation: sun-pulse 2s infinite;
@@ -530,17 +554,20 @@ h1 {
   width: 100%;
   max-width: 500px;
   margin-bottom: 20px;
+  box-sizing: border-box;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 .info-cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   width: 100%;
-  max-width: 350px;
+  max-width: 100vw;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 
@@ -556,12 +583,17 @@ h1 {
 /* Estilos para a fase lunar */
 
 .moon-phase-card {
-  min-width: 100%;
+  flex-basis: 100%;
+  width: 100%;
+  min-width: 0;
   margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 .moon-phase {
   margin-top: 10px;
-  font-size: 2.5rem;
+  
 }
 
 .moon-phase-bar {
@@ -583,6 +615,13 @@ h1 {
   opacity: 0.7;
 }
 
+@media (min-width: 501px) {
+  .moon-phase-card {
+    max-width: 350px;
+    max-height: 125px;
+  }
+}
+
 /* Ajustes para tema noturno */
 .night-theme .moon-phase-bar {
   background: rgba(0, 0, 0, 0.3);
@@ -594,6 +633,28 @@ h1 {
 
 .moon-phase {
   grid-column: span 2;
+}
+
+/* Responsividade para telas pequenas */
+@media (max-width: 500px) {
+  .info-cards {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .info-card {
+    min-width: 90px;
+    padding: 8px;
+    font-size: 0.95em;
+  }
+  .moon-phase-card {
+    max-width: 100%;
+  }
+  .celestial-indicator {
+    font-size: 1.5em;
+    top: -30px; /* Ajuste para centralizar melhor */
+    left: auto;
+  }
 }
 
 
