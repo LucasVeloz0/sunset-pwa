@@ -20,15 +20,11 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
   overflow: hidden;
-}
-
-/* Ajuste global para remover qualquer scroll lateral e superior */
-html, body {
   width: 100vw;
   min-height: 100vh;
-  margin: 0;
-  padding: 0;
 }
+
+
 
 body, html, .app-container {
   overscroll-behavior: none;
@@ -36,6 +32,7 @@ body, html, .app-container {
 
 /* Layout Base */
 .app-container {
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -57,12 +54,11 @@ body, html, .app-container {
 }
 
 h1 {
-  padding: 20px;
-  font-size: 1.8em;
-  margin: 0;
+  padding: 1.5vh 0;
+  font-size: clamp(1.4rem, 5vw, 1.8rem); /* Tamanho responsivo */
   text-align: center;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  font-weight: 600;
+  margin-bottom: 1vh;
+  width: 100%;
   color: #ff9800; /* Cor do título */
 }
 
@@ -88,8 +84,8 @@ h1 {
 
 .compass {
   position: relative;
-  width: 300px;
-  height: 300px;
+  width: 240px;
+  height: 240px;
   margin: 0 auto;
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
@@ -97,13 +93,8 @@ h1 {
   background: rgba(0, 0, 0, 0.2);
 }
 
-@media (min-width: 900px) {
-  .compass { width: 340px; height: 340px; }
-}
 
-@media (max-width: 480px) {
-  .compass { width: 140px; height: 140px; }
-}
+
 
 /* Estado de alinhamento */
 .compass.aligned {
@@ -468,14 +459,16 @@ h1 {
 }
 
 .celestial-toggle button {
-  padding: 10px 20px;
+  padding: 1.2vh 3vw;
   border: none;
-  border-radius: 30px;
+  border-radius: 25px;
   background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(5px);
   color: white;
   font-weight: bold;
   cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-size: clamp(0.8rem, 3.5vw, 1rem); /* Fonte responsiva */
   transition: all 0.3s;
   
 }
@@ -580,7 +573,7 @@ h1 {
 }
 
 .moon-phase-fill {
-  height: 100%;
+
   background: linear-gradient(to right, #a1c4fd, #c2e9fb);
   border-radius: 4px;
 }
