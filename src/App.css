@@ -586,14 +586,13 @@ h1 {
   flex-basis: 100%;
   width: 100%;
   min-width: 0;
-  margin-top: 10px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto;
   box-sizing: border-box;
-}
-.moon-phase {
-  margin-top: 10px;
-  
+  padding: 16px 12px; /* padding padrão */
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .moon-phase-bar {
@@ -602,12 +601,9 @@ h1 {
   border-radius: 4px;
   margin: 10px 0;
   overflow: hidden;
-}
-
-.moon-phase-fill {
-
-  background: linear-gradient(to right, #a1c4fd, #c2e9fb);
-  border-radius: 4px;
+  min-height: 6px;
+  max-height: 14px;
+  transition: height 0.2s;
 }
 
 .moon-percentage {
@@ -615,24 +611,38 @@ h1 {
   opacity: 0.7;
 }
 
-@media (min-width: 501px) {
+/* Responsividade para telas pequenas */
+@media (max-width: 500px) {
   .moon-phase-card {
-    max-width: 350px;
-    max-height: 125px;
+    padding: 8px 4px;
+    min-height: 48px;
+  }
+  .moon-phase-bar {
+    height: 5vw;
+    min-height: 4px;
+    max-height: 10px;
+    margin: 6px 0;
+  }
+  .moon-percentage {
+    font-size: 0.7rem;
   }
 }
 
-/* Ajustes para tema noturno */
-.night-theme .moon-phase-bar {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.night-theme .moon-phase-fill {
-  background: linear-gradient(90deg, #1a237e, #4fc3f7);
-}
-
-.moon-phase {
-  grid-column: span 2;
+/* Para telas muito pequenas */
+@media (max-width: 350px) {
+  .moon-phase-card {
+    padding: 4px 2px;
+    min-height: 32px;
+  }
+  .moon-phase-bar {
+    height: 3vw;
+    min-height: 3px;
+    max-height: 8px;
+    margin: 4px 0;
+  }
+  .moon-percentage {
+    font-size: 0.6rem;
+  }
 }
 
 /* Responsividade para telas pequenas */
