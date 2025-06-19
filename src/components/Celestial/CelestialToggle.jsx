@@ -3,7 +3,7 @@ import React from 'react';
 const CelestialToggle = ({ celestialBody, setCelestialBody }) => (
   <>
     {/* Botão de alternância */}
-    <div className="celestial-toggle">
+    <div className="celestial-toggle, btn">
       <button
         className={celestialBody === 'sun' ? 'active' : ''}
         onClick={() => setCelestialBody('sun')}

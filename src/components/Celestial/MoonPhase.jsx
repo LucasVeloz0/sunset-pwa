@@ -1,7 +1,7 @@
 import React from 'react';
 
 const MoonPhase = ({ moonPhase }) => (
-    <div className="info-card moon-phase moon-phase-card">
+    <div className="info-card moon-phase card">
         <span>{moonPhase.emoji} Fase</span>
         <strong>{moonPhase.name}</strong>
         <div className="moon-phase-bar">

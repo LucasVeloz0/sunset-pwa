@@ -1,0 +1,11 @@
+/* Estilos base globais */
+body {
+    background-color: var(--light-color);
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+  }
